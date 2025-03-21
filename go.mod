@@ -1,4 +1,4 @@
-module github.com/beclab/oacchecker
+module github.com/beclab/oachecker
 
 go 1.21.0
 
