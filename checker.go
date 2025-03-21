@@ -112,6 +112,27 @@ func CheckManifestFromFile(oacPath string, opts ...func(map[string]interface{}))
 	return nil
 }
 
+func CheckManifestFromContent(content []byte, opts ...func(map[string]interface{})) error {
+	cfg, err := GetAppConfigurationFromContent(content, opts...)
+	if err != nil {
+		return err
+	}
+	err = vd.Validate(cfg, true)
+	if err != nil {
+		return err
+	}
+	err = CheckSupportedArch(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = CheckAppEntrances(cfg)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func Lint(oacPath string, options *LintOptions) error {
 	if options == nil {
 		options = DefaultLintOptions()

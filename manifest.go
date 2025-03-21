@@ -2,6 +2,7 @@ package oachecker
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	vd "github.com/bytedance/go-tagexpr/v2/validator"
@@ -216,5 +217,10 @@ func GetAppConfiguration(oacPath string, opts ...func(map[string]interface{})) (
 		return nil, err
 	}
 	defer f.Close()
+	return getAppConfigFromCfg(f, opts...)
+}
+
+func GetAppConfigurationFromContent(content []byte, opts ...func(map[string]interface{})) (*AppConfiguration, error) {
+	f := io.NopCloser(bytes.NewReader(content))
 	return getAppConfigFromCfg(f, opts...)
 }
