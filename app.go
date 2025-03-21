@@ -13,6 +13,7 @@ func init() {
 
 type AppConfiguration struct {
 	ConfigVersion string      `yaml:"olaresManifest.version" json:"olaresManifest.version" vd:"len($)>0;msg:sprintf('invalid parameter: %v;olaresManifest.version must satisfy the expr: len($)>0',$)"`
+	ConfigType    string      `yaml:"olaresManifest.type" json:"olaresManifest.type"`
 	Metadata      AppMetaData `yaml:"metadata" json:"metadata"`
 	Entrances     []Entrance  `yaml:"entrances" json:"entrances" vd:"len($)>0 && len($)<=10;msg:sprintf('invalid parameter: %v;entrances must satisfy the expr: len($)>0 && len($)<=10',$)"`
 	Spec          AppSpec     `yaml:"spec,omitempty" json:"spec,omitempty"`
@@ -67,17 +68,20 @@ type AppMetaData struct {
 	Title       string   `yaml:"title" json:"title" vd:"len($)>0 && len($)<=30;msg:sprintf('invalid parameter: %v;title must satisfy the expr: len($)>0 && len($)<=30',$)"`
 	Version     string   `yaml:"version" json:"version" vd:"len($)>0;msg:sprintf('invalid parameter: %v;version must satisfy the expr: len($)>0',$)"`
 	Categories  []string `yaml:"categories" json:"categories"`
-	Rating      float32  `yaml:"rating" json:"rating" vd:"-"`
-	Target      string   `yaml:"target" json:"target" vd:"-"`
+	//Rating      float32  `yaml:"rating" json:"rating" vd:"-"`
+	Target string `yaml:"target" json:"target" vd:"-"`
 }
 
 type Entrance struct {
-	Name      string `yaml:"name" json:"name" vd:"regexp('^([a-z0-9A-Z-]*)$') && len($)<=63;msg:sprintf('invalid parameter: %v;name must satisfy the expr: regexp(^([a-z0-9-]*)$)',$)"`
-	Host      string `yaml:"host" json:"host" vd:"regexp('^([a-z]([-a-z0-9]*[a-z0-9]))$') && len($)<=63;msg:sprintf('invalid parameter: %v;host must satisfy the expr: regexp(^([a-z]([-a-z0-9]*[a-z0-9]))$)',$)"`
-	Port      int32  `yaml:"port" json:"port" vd:"$>0;msg:sprintf('invalid parameter: %v;port must satisfy the expr: $>0',$)"`
-	Icon      string `yaml:"icon" json:"icon"`
-	Title     string `yaml:"title" json:"title" vd:"len($)>0 && len($)<=30 && regexp('^([a-z0-9A-Z-\\s]*)$');msg:sprintf('invalid parameter: %v;title must satisfy the expr: len($)>0 && len($)<=30 && regexp(^([a-z0-9A-Z-\\s]*)$)',$)"`
-	AuthLevel string `yaml:"authLevel" json:"authLevel"`
+	Name            string `yaml:"name" json:"name" vd:"regexp('^([a-z0-9A-Z-]*)$') && len($)<=63;msg:sprintf('invalid parameter: %v;name must satisfy the expr: regexp(^([a-z0-9-]*)$)',$)"`
+	Host            string `yaml:"host" json:"host" vd:"regexp('^([a-z]([-a-z0-9]*[a-z0-9]))$') && len($)<=63;msg:sprintf('invalid parameter: %v;host must satisfy the expr: regexp(^([a-z]([-a-z0-9]*[a-z0-9]))$)',$)"`
+	Port            int32  `yaml:"port" json:"port" vd:"$>0;msg:sprintf('invalid parameter: %v;port must satisfy the expr: $>0',$)"`
+	Icon            string `yaml:"icon" json:"icon"`
+	Title           string `yaml:"title" json:"title" vd:"len($)>0 && len($)<=30 && regexp('^([a-z0-9A-Z-\\s]*)$');msg:sprintf('invalid parameter: %v;title must satisfy the expr: len($)>0 && len($)<=30 && regexp(^([a-z0-9A-Z-\\s]*)$)',$)"`
+	AuthLevel       string `yaml:"authLevel" json:"authLevel"`
+	Invisible       bool   `yaml:"invisible,omitempty" json:"invisible,omitempty"`
+	OpenMethod      string `yaml:"openMethod" json:"openMethod"`
+	WindowPushState bool   `yaml:"windowPushState,omitempty" json:"windowPushState,omitempty"`
 }
 
 type AppSpec struct {
@@ -96,6 +100,20 @@ type AppSpec struct {
 	RequiredCPU        string         `yaml:"requiredCpu" json:"requiredCpu" vd:"regexp('^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$');msg:sprintf('invalid parameter: %v;requiredCpu must satisfy the expr: regexp(^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$)',$)"`
 	LimitedMemory      string         `yaml:"limitedMemory" json:"limitedMemory" vd:"regexp('^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$');msg:sprintf('invalid parameter: %v;limitedMemory must satisfy the expr: regexp(^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$)',$)"`
 	LimitedCPU         string         `yaml:"limitedCpu" json:"limitedCpu" vd:"regexp('^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$');msg:sprintf('invalid parameter: %v;limitedCpu must satisfy the expr: regexp(^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$)',$)"`
+
+	Language     []string     `yaml:"language,omitempty" json:"language,omitempty"`
+	Submitter    string       `yaml:"submitter,omitempty" json:"submitter,omitempty"`
+	Doc          string       `yaml:"doc,omitempty" json:"doc,omitempty"`
+	Website      string       `yaml:"website,omitempty" json:"website,omitempty"`
+	FeatureImage string       `yaml:"featuredImage,omitempty" json:"featuredImage,omitempty"`
+	SourceCode   string       `yaml:"sourceCode,omitempty" json:"sourceCode,omitempty"`
+	License      []TextAndURL `yaml:"license,omitempty" json:"license,omitempty"`
+	Legal        []TextAndURL `yaml:"legal,omitempty" json:"legal,omitempty"`
+}
+
+type TextAndURL struct {
+	Text string `yaml:"text" json:"text" bson:"text"`
+	URL  string `yaml:"url" json:"url" bson:"url"`
 }
 
 type SupportClient struct {
@@ -108,8 +126,10 @@ type SupportClient struct {
 }
 
 type Permission struct {
-	AppData bool         `yaml:"appData" json:"appData"`
-	SysData []SysDataCfg `yaml:"sysData" json:"sysData"`
+	AppData  bool         `yaml:"appData,omitempty" json:"appData,omitempty"  description:"app data permission for writing"`
+	AppCache bool         `yaml:"appCache" json:"appCache"`
+	UserData []string     `yaml:"userData" json:"userData"`
+	SysData  []SysDataCfg `yaml:"sysData,omitempty" json:"sysData,omitempty"  description:"system shared data permission for accessing"`
 }
 
 type SysDataCfg struct {
@@ -130,8 +150,24 @@ type Policy struct {
 type Options struct {
 	Policies     *[]Policy     `yaml:"policies" json:"policies" vd:"?"`
 	Analytics    *Analytics    `yaml:"analytics" json:"analytics" vd:"?"`
+	ResetCookie  *ResetCookie  `yaml:"resetCookie" json:"resetCookie" vd:"?"`
 	Dependencies *[]Dependency `yaml:"dependencies" json:"dependencies" vd:"?"`
+	AppScope     *AppScope     `yaml:"appScope" json:"appScope" vd:"?"`
+	WsConfig     *WsConfig     `yaml:"wsConfig" json:"wsConfig" vd:"?"`
 	Upload       *Upload       `yaml:"upload" json:"upload"`
+}
+
+type WsConfig struct {
+	Port int    `yaml:"port" json:"port"`
+	URL  string `yaml:"url" json:"url"`
+}
+type AppScope struct {
+	ClusterScoped bool     `yaml:"clusterScoped" json:"clusterScoped"`
+	AppRef        []string `yaml:"appRef" json:"appRef"`
+}
+
+type ResetCookie struct {
+	Enabled bool `yaml:"enabled" json:"enabled"`
 }
 
 type Analytics struct {
@@ -181,4 +217,19 @@ type TitleInfo struct {
 	PrType  string
 	Folder  string
 	Version string
+}
+
+type ServicePort struct {
+	Name string `json:"name" yaml:"name"`
+	Host string `yaml:"host" json:"host"`
+	Port int32  `yaml:"port" json:"port"`
+
+	ExposePort int32 `yaml:"exposePort" json:"exposePort,omitempty"`
+
+	// The protocol for this entrance. Supports "tcp" and "udp","".
+	// Default is tcp/udp, "" mean tcp and udp.
+	// +default="tcp/udp"
+	// +optional
+	Protocol          string `yaml:"protocol" json:"protocol,omitempty"`
+	AddToTailscaleAcl bool   `yaml:"addToTailscaleAcl" json:"addToTailscaleAcl"`
 }
