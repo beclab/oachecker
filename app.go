@@ -17,9 +17,10 @@ type AppConfiguration struct {
 	Metadata      AppMetaData `yaml:"metadata" json:"metadata"`
 	Entrances     []Entrance  `yaml:"entrances" json:"entrances" vd:"len($)>0 && len($)<=10;msg:sprintf('invalid parameter: %v;entrances must satisfy the expr: len($)>0 && len($)<=10',$)"`
 	Spec          AppSpec     `yaml:"spec,omitempty" json:"spec,omitempty"`
-	Permission    *Permission `yaml:"permission" json:"permission" vd:"?"`
-	Middleware    *Middleware `yaml:"middleware,omitempty" json:"middleware,omitempty" vd:"?"`
-	Options       *Options    `yaml:"options" json:"options" vd:"?"`
+	// TODO:hys add validate for permission field
+	Permission Permission  `yaml:"permission" json:"permission" vd:"?"`
+	Middleware *Middleware `yaml:"middleware,omitempty" json:"middleware,omitempty" vd:"?"`
+	Options    Options     `yaml:"options" json:"options" vd:"?"`
 }
 
 type Middleware struct {

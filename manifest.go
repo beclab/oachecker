@@ -115,7 +115,7 @@ func CheckAppEntrances(cfg *AppConfiguration) error {
 }
 
 func CheckAppData(oacPath string, cfg *AppConfiguration) error {
-	if cfg.Permission != nil && cfg.Permission.AppData {
+	if cfg.Permission.AppData {
 		return nil
 	}
 	if !strings.HasSuffix(oacPath, "/") {

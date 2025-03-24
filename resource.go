@@ -135,7 +135,7 @@ func checkResourceNamespace(resources kube.ResourceList) error {
 }
 
 func checkUploadConfig(resources kube.ResourceList, cfg *AppConfiguration) error {
-	if cfg.Options == nil || cfg.Options.Upload == nil {
+	if cfg.Options.Upload == nil {
 		return nil
 	}
 	var err error
