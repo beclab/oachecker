@@ -34,6 +34,7 @@ func checkResourceLimit(resources kube.ResourceList, cfg *AppConfiguration) erro
 	}
 
 	limitCPU, limitMemory := float64(0), float64(0)
+	requiredCPU, requiredMemory := float64(0), float64(0)
 
 	for _, r := range resources {
 		kind := r.Object.GetObjectKind().GroupVersionKind().Kind
@@ -48,9 +49,13 @@ func checkResourceLimit(resources kube.ResourceList, cfg *AppConfiguration) erro
 
 				if requests.Memory().IsZero() {
 					errs = append(errs, fmt.Errorf("deployment: %s, container: %s must set memory request", deployment.Name, c.Name))
+				} else {
+					requiredMemory += requests.Memory().AsApproximateFloat64()
 				}
 				if requests.Cpu().IsZero() {
 					errs = append(errs, fmt.Errorf("deployment: %s, container: %s must set cpu request", deployment.Name, c.Name))
+				} else {
+					requiredCPU += requests.Cpu().AsApproximateFloat64()
 				}
 				limits := c.Resources.Limits
 				if limits.Memory().IsZero() {
@@ -75,9 +80,13 @@ func checkResourceLimit(resources kube.ResourceList, cfg *AppConfiguration) erro
 				requests := c.Resources.Requests
 				if requests.Memory().IsZero() {
 					errs = append(errs, fmt.Errorf("statefulset: %s, container: %s must set memory request", sts.Name, c.Name))
+				} else {
+					requiredMemory += requests.Memory().AsApproximateFloat64()
 				}
 				if requests.Cpu().IsZero() {
 					errs = append(errs, fmt.Errorf("statefulset: %s, container: %s must set cpu request", sts.Name, c.Name))
+				} else {
+					requiredCPU += requests.Cpu().AsApproximateFloat64()
 				}
 				limits := c.Resources.Limits
 				if limits.Memory().IsZero() {
@@ -98,6 +107,12 @@ func checkResourceLimit(resources kube.ResourceList, cfg *AppConfiguration) erro
 	}
 	if limitMemory > appLimitedMemory {
 		errs = append(errs, fmt.Errorf("sum of all containers resources limits memory should less than OlaresManifest.yaml spec.limitedMemory"))
+	}
+	if requiredCPU > appRequiredCPU {
+		errs = append(errs, fmt.Errorf("sum of all containers resources requests cpu should less than OlaresManifest.yaml spec.requiredCpu"))
+	}
+	if requiredMemory > appRequiredMemory {
+		errs = append(errs, fmt.Errorf("sum of all containers resources requests memory should less than OlaresManifest.yaml spec.requiredMemory"))
 	}
 	return AggregateErr(errs)
 }
