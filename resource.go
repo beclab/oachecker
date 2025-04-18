@@ -46,6 +46,13 @@ func checkResourceLimit(resources kube.ResourceList, cfg *AppConfiguration) erro
 			}
 			for _, c := range deployment.Spec.Template.Spec.Containers {
 				requests := c.Resources.Requests
+				limits := c.Resources.Limits
+				if !requests.Cpu().IsZero() && !limits.Cpu().IsZero() && requests.Cpu().Cmp(*limits.Cpu()) > 0 {
+					errs = append(errs, fmt.Errorf("deployment: %s, container: %s requests.cpu must small than limits.cpu", deployment.Name, c.Name))
+				}
+				if !requests.Memory().IsZero() && !limits.Memory().IsZero() && requests.Memory().Cmp(*limits.Memory()) > 0 {
+					errs = append(errs, fmt.Errorf("deployment: %s, container: %s requests.memory must small than limits.memory", deployment.Name, c.Name))
+				}
 
 				if requests.Memory().IsZero() {
 					errs = append(errs, fmt.Errorf("deployment: %s, container: %s must set memory request", deployment.Name, c.Name))
@@ -57,7 +64,6 @@ func checkResourceLimit(resources kube.ResourceList, cfg *AppConfiguration) erro
 				} else {
 					requiredCPU += requests.Cpu().AsApproximateFloat64()
 				}
-				limits := c.Resources.Limits
 				if limits.Memory().IsZero() {
 					errs = append(errs, fmt.Errorf("deployment: %s, container: %s must set memory limit", deployment.Name, c.Name))
 				} else {
@@ -78,6 +84,13 @@ func checkResourceLimit(resources kube.ResourceList, cfg *AppConfiguration) erro
 			}
 			for _, c := range sts.Spec.Template.Spec.Containers {
 				requests := c.Resources.Requests
+				limits := c.Resources.Limits
+				if !requests.Cpu().IsZero() && !limits.Cpu().IsZero() && requests.Cpu().Cmp(*limits.Cpu()) > 0 {
+					errs = append(errs, fmt.Errorf("deployment: %s, container: %s requests.cpu must small than limits.cpu", sts.Name, c.Name))
+				}
+				if !requests.Memory().IsZero() && !limits.Memory().IsZero() && requests.Memory().Cmp(*limits.Memory()) > 0 {
+					errs = append(errs, fmt.Errorf("deployment: %s, container: %s requests.memory must small than limits.memory", sts.Name, c.Name))
+				}
 				if requests.Memory().IsZero() {
 					errs = append(errs, fmt.Errorf("statefulset: %s, container: %s must set memory request", sts.Name, c.Name))
 				} else {
@@ -88,7 +101,6 @@ func checkResourceLimit(resources kube.ResourceList, cfg *AppConfiguration) erro
 				} else {
 					requiredCPU += requests.Cpu().AsApproximateFloat64()
 				}
-				limits := c.Resources.Limits
 				if limits.Memory().IsZero() {
 					errs = append(errs, fmt.Errorf("statefulset: %s, container: %s must set memory limit", sts.Name, c.Name))
 				} else {
