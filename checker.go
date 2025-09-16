@@ -8,18 +8,20 @@ type LintOptions struct {
 	SkipManifestCheck bool
 	SkipResourceCheck bool
 
-	SkipFolderCheck  bool
-	CustomValidators []func(string, *AppConfiguration) error
+	SkipFolderCheck      bool
+	SkipSameVersionCheck bool
+	CustomValidators     []func(string, *AppConfiguration) error
 }
 
 func DefaultLintOptions() *LintOptions {
 	return &LintOptions{
-		Owner:             "",
-		Admin:             "",
-		SkipManifestCheck: false,
-		SkipResourceCheck: false,
-		SkipFolderCheck:   false,
-		CustomValidators:  []func(string, *AppConfiguration) error{},
+		Owner:                "",
+		Admin:                "",
+		SkipManifestCheck:    false,
+		SkipResourceCheck:    false,
+		SkipFolderCheck:      false,
+		SkipSameVersionCheck: true,
+		CustomValidators:     []func(string, *AppConfiguration) error{},
 	}
 }
 
@@ -55,6 +57,11 @@ func (o *LintOptions) SkipManifest() *LintOptions {
 
 func (o *LintOptions) SkipResources() *LintOptions {
 	o.SkipResourceCheck = true
+	return o
+}
+
+func (o *LintOptions) SkipSameVersion() *LintOptions {
+	o.SkipSameVersionCheck = true
 	return o
 }
 
@@ -178,6 +185,13 @@ func Lint(oacPath string, options *LintOptions) error {
 		}
 	}
 
+	if !options.SkipSameVersionCheck {
+		err = CheckSameVersion(oacPath)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -192,5 +206,9 @@ func LintWithSameOwnerAdmin(oacPath string, ownerAdmin string) error {
 
 func LintWithDifferentOwnerAdmin(oacPath string, owner string, admin string) error {
 	options := DefaultLintOptions().WithOwner(owner).WithAdmin(admin)
+	return Lint(oacPath, options)
+}
+
+func LintWithOptions(oacPath string, options *LintOptions) error {
 	return Lint(oacPath, options)
 }
