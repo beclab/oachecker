@@ -72,19 +72,24 @@ func baseChartFolderCheck(folder string) (*Chart, *AppConfiguration, string, err
 }
 
 func CheckChartFolder(folder string) error { // todo extract func
+	_, _, _, err := baseChartFolderCheck(folder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CheckSameVersion(folder string) error {
 	chart, appConf, folderName, err := baseChartFolderCheck(folder)
 	if err != nil {
 		return err
 	}
 
-	if err := isValidMetadataFields(appConf.Metadata, chart, folderName); err != nil {
+	err = isValidMetadataFields(appConf.Metadata, chart, folderName)
+	if err != nil {
 		return err
 	}
-
-	//if err := image.CheckAppConfigImages(&appConf); err != nil {
-	//	return err
-	//}
-
 	return nil
 }
 
