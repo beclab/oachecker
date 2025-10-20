@@ -139,7 +139,37 @@ func CheckResource(oacPath string, cfg *AppConfiguration, options *LintOptions) 
 		return err
 	}
 	err = checkUploadConfig(resources, cfg)
-	return err
+	if err != nil {
+		return err
+	}
+	err = checkDeploymentName(resources, cfg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// checkDeploymentName for app we assume must have one deployment/sts name equal app name
+func checkDeploymentName(resources kube.ResourceList, cfg *AppConfiguration) error {
+	if cfg.ConfigType != "app" {
+		return nil
+	}
+	appName := cfg.Metadata.Name
+	for _, r := range resources {
+		kind := r.Object.GetObjectKind().GroupVersionKind().Kind
+		if kind == "Deployment" {
+			if r.Name == appName {
+				return nil
+			}
+		}
+		if kind == "StatefulSet" {
+			if r.Name == appName {
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("must have a deployment/sts name equal app name %s", appName)
 }
 
 func checkResourceNamespace(resources kube.ResourceList) error {
