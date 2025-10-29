@@ -267,10 +267,6 @@ func getResourceListFromChart(oacPath string, cfg *AppConfiguration, options *Li
 		"appKey":    "appKey",
 		"appSecret": "appSecret",
 	}
-	//cfg, err := GetAppConfiguration(oacPath)
-	//if err != nil {
-	//	return nil, err
-	//}
 	entries := make(map[string]interface{})
 	for _, e := range cfg.Entrances {
 		entries[e.Name] = "random-string"
@@ -288,8 +284,32 @@ func getResourceListFromChart(oacPath string, cfg *AppConfiguration, options *Li
 	values["zinc"] = map[string]interface{}{
 		"indexes": map[string]interface{}{},
 	}
+	values["mariadb"] = map[string]interface{}{
+		"databases": map[string]interface{}{},
+	}
+	values["mysql"] = map[string]interface{}{
+		"databases": map[string]interface{}{},
+	}
+	values["minio"] = map[string]interface{}{
+		"buckets": map[string]interface{}{},
+	}
+	values["rabbitmq"] = map[string]interface{}{
+		"vhosts": map[string]interface{}{},
+	}
+	values["elasticsearch"] = map[string]interface{}{
+		"indexes": map[string]interface{}{},
+	}
+	values["nats"] = map[string]interface{}{
+		"subjects": map[string]interface{}{},
+		"refs":     map[string]interface{}{},
+	}
 	values["svcs"] = map[string]interface{}{}
 	values["cluster"] = map[string]interface{}{}
+	values["GPU"] = map[string]interface{}{}
+	values["oidc"] = map[string]interface{}{
+		"client": map[string]interface{}{},
+		"issuer": "issuer",
+	}
 
 	ret, err := instAction.RunWithContext(context.Background(), chartRequested, values)
 	if err != nil {
