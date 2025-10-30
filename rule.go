@@ -310,6 +310,7 @@ func getResourceListFromChart(oacPath string, cfg *AppConfiguration, options *Li
 		"client": map[string]interface{}{},
 		"issuer": "issuer",
 	}
+	values["olaresEnv"] = map[string]interface{}{}
 
 	ret, err := instAction.RunWithContext(context.Background(), chartRequested, values)
 	if err != nil {
