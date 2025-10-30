@@ -12,22 +12,132 @@ func init() {
 }
 
 type AppConfiguration struct {
-	ConfigVersion string      `yaml:"olaresManifest.version" json:"olaresManifest.version" vd:"len($)>0;msg:sprintf('invalid parameter: %v;olaresManifest.version must satisfy the expr: len($)>0',$)"`
-	ConfigType    string      `yaml:"olaresManifest.type" json:"olaresManifest.type"`
-	Metadata      AppMetaData `yaml:"metadata" json:"metadata"`
-	Entrances     []Entrance  `yaml:"entrances" json:"entrances" vd:"len($)>0 && len($)<=10;msg:sprintf('invalid parameter: %v;entrances must satisfy the expr: len($)>0 && len($)<=10',$)"`
-	Spec          AppSpec     `yaml:"spec,omitempty" json:"spec,omitempty"`
+	ConfigVersion string        `yaml:"olaresManifest.version" json:"olaresManifest.version" vd:"len($)>0;msg:sprintf('invalid parameter: %v;olaresManifest.version must satisfy the expr: len($)>0',$)"`
+	ConfigType    string        `yaml:"olaresManifest.type" json:"olaresManifest.type"`
+	Metadata      AppMetaData   `yaml:"metadata" json:"metadata"`
+	Entrances     []Entrance    `yaml:"entrances" json:"entrances" vd:"len($)>0 && len($)<=10;msg:sprintf('invalid parameter: %v;entrances must satisfy the expr: len($)>0 && len($)<=10',$)"`
+	Ports         []ServicePort `yaml:"ports" json:"ports"`
+	TailScale     TailScale     `yaml:"tailScale" json:"tailScale"`
+	Spec          AppSpec       `yaml:"spec,omitempty" json:"spec,omitempty"`
 	// TODO:hys add validate for permission field
 	Permission Permission  `yaml:"permission" json:"permission" vd:"?"`
 	Middleware *Middleware `yaml:"middleware,omitempty" json:"middleware,omitempty" vd:"?"`
 	Options    Options     `yaml:"options" json:"options" vd:"?"`
+	Provider   []Provider  `yaml:"provider,omitempty" json:"provider,omitempty" description:"app provider information"`
+	Envs       []AppEnvVar `yaml:"envs,omitempty" json:"envs,omitempty"`
+}
+
+type Provider struct {
+	Name     string   `yaml:"name" json:"name"`
+	Entrance string   `yaml:"entrance" json:"entrance"`
+	Paths    []string `yaml:"paths" json:"paths"`
+	Verbs    []string `yaml:"verbs" json:"verbs"`
+}
+
+type AppEnvVar struct {
+	EnvVarSpec    `json:",inline" yaml:",inline"`
+	ApplyOnChange bool       `json:"applyOnChange,omitempty" yaml:"applyOnChange,omitempty"`
+	ValueFrom     *ValueFrom `json:"valueFrom,omitempty" yaml:"valueFrom,omitempty"`
+}
+
+// ValueFrom defines a reference to an environment variable (UserEnv or SystemEnv)
+type ValueFrom struct {
+	EnvName string `json:"envName" validate:"required"`
+	Status  string `json:"status,omitempty"`
+}
+
+type EnvVarSpec struct {
+	EnvName     string `json:"envName" yaml:"envName" validate:"required"`
+	Value       string `json:"value,omitempty" yaml:"value,omitempty"`
+	Default     string `json:"default,omitempty" yaml:"default,omitempty"`
+	Editable    bool   `json:"editable,omitempty" yaml:"editable,omitempty"`
+	Type        string `json:"type,omitempty" yaml:"type,omitempty"`
+	Required    bool   `json:"required,omitempty" yaml:"required,omitempty"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
 type Middleware struct {
-	Postgres   *PostgresConfig   `yaml:"postgres,omitempty" json:"postgres,omitempty" vd:"?"`
-	Redis      *RedisConfig      `yaml:"redis,omitempty" json:"redis,omitempty" vd:"?"`
-	MongoDB    *MongodbConfig    `yaml:"mongodb,omitempty" json:"mongodb,omitempty" vd:"?"`
-	ZincSearch *ZincSearchConfig `yaml:"zincSearch,omitempty" json:"zincSearch,omitempty" vd:"?"`
+	Postgres      *PostgresConfig      `yaml:"postgres,omitempty" json:"postgres,omitempty" vd:"?"`
+	Redis         *RedisConfig         `yaml:"redis,omitempty" json:"redis,omitempty" vd:"?"`
+	MongoDB       *MongodbConfig       `yaml:"mongodb,omitempty" json:"mongodb,omitempty" vd:"?"`
+	Nats          *NatsConfig          `yaml:"nats,omitempty"`
+	Minio         *MinioConfig         `yaml:"minio,omitempty"`
+	RabbitMQ      *RabbitMQConfig      `yaml:"rabbitmq,omitempty"`
+	Elasticsearch *ElasticsearchConfig `yaml:"elasticsearch,omitempty"`
+	MariaDB       *MariaDBConfig       `yaml:"mariadb,omitempty"`
+	MySQL         *MySQLConfig         `yaml:"mysql,omitempty"`
+	Argo          *ArgoConfig          `yaml:"argo,omitempty"`
+}
+
+type RabbitMQConfig struct {
+	Username string  `yaml:"username" json:"username"`
+	Password string  `yaml:"password" json:"password"`
+	VHosts   []VHost `yaml:"vhosts" json:"vhosts"`
+}
+
+type VHost struct {
+	Name string `json:"name"`
+}
+
+type ElasticsearchConfig struct {
+	Username string  `yaml:"username" json:"username"`
+	Password string  `yaml:"password" json:"password"`
+	Indexes  []Index `yaml:"indexes" json:"indexes"`
+}
+
+type Index struct {
+	Name string `json:"name"`
+}
+type ArgoConfig struct {
+	Required bool `yaml:"required" json:"required"`
+}
+
+type MinioConfig struct {
+	Username string   `yaml:"username" json:"username"`
+	Password string   `yaml:"password" json:"password"`
+	Buckets  []Bucket `yaml:"buckets" json:"buckets"`
+}
+
+type Bucket struct {
+	Name string `json:"name"`
+}
+type NatsConfig struct {
+	Username string    `yaml:"username" json:"username"`
+	Password string    `yaml:"password,omitempty" json:"password,omitempty"`
+	Subjects []Subject `yaml:"subjects" json:"subjects"`
+	Refs     []Ref     `yaml:"refs" json:"refs"`
+}
+type Ref struct {
+	AppName string `yaml:"appName" json:"appName"`
+	// option for ref app in user-space-<>, user-system-<>, os-system
+	AppNamespace string       `yaml:"appNamespace" json:"appNamespace"`
+	Subjects     []RefSubject `yaml:"subjects" json:"subjects"`
+}
+
+type RefSubject struct {
+	Name string   `yaml:"name" json:"name"`
+	Perm []string `yaml:"perm" json:"perm"`
+}
+
+type Subject struct {
+	Name string `yaml:"name" json:"name"`
+	// Permissions indicates the permission that app can perform on this subject
+	Permission Permission   `yaml:"permission" json:"permission"`
+	Export     []Permission `yaml:"export" json:"export"`
+}
+
+// MariaDBConfig contains fields for mariadb config.
+type MariaDBConfig struct {
+	Username  string     `yaml:"username" json:"username"`
+	Password  string     `yaml:"password,omitempty" json:"password"`
+	Databases []Database `yaml:"databases" json:"databases"`
+}
+
+// MySQLConfig contains fields for mysql config.
+type MySQLConfig struct {
+	Username  string     `yaml:"username" json:"username"`
+	Password  string     `yaml:"password,omitempty" json:"password"`
+	Databases []Database `yaml:"databases" json:"databases"`
 }
 
 type Database struct {
@@ -52,15 +162,6 @@ type MongodbConfig struct {
 	Databases []Database `yaml:"databases" json:"databases" vd:"len($)>0;msg:sprintf('invalid parameter: %v;databases must satisfy the expr: len($)>0',$)"`
 }
 
-type ZincSearchConfig struct {
-	Username string  `yaml:"username" json:"username" vd:"len($)>0;msg:sprintf('invalid parameter: %v;username must satisfy the expr: len($)>0',$)"`
-	Password string  `yaml:"password,omitempty" json:"password,omitempty" vd:"-"`
-	Indexes  []Index `yaml:"indexes" json:"indexes" vd:"len($)>0;msg:sprintf('invalid parameter: %v;indexes must satisfy the expr: len($)>0',$)"`
-}
-
-type Index struct {
-	Name string `yaml:"name" json:"name" vd:"len($)>0;msg:sprintf('invalid parameter: %v;name must satisfy the expr: len($)>0',$)"`
-}
 type AppMetaData struct {
 	Name        string   `yaml:"name" json:"name"  vd:"len($)>0 && len($)<=30;msg:sprintf('invalid parameter: %v;name must satisfy the expr: len($)>0 && len($)<=30',$)"`
 	Icon        string   `yaml:"icon" json:"icon" vd:"len($)>0;msg:sprintf('invalid parameter: %v;icon must satisfy the expr: len($)>0',$)"`
@@ -102,6 +203,11 @@ type AppSpec struct {
 	LimitedMemory      string         `yaml:"limitedMemory" json:"limitedMemory" vd:"regexp('^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$');msg:sprintf('invalid parameter: %v;limitedMemory must satisfy the expr: regexp(^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$)',$)"`
 	LimitedCPU         string         `yaml:"limitedCpu" json:"limitedCpu" vd:"regexp('^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$');msg:sprintf('invalid parameter: %v;limitedCpu must satisfy the expr: regexp(^(?:\\d+(?:\\.\\d+)?(?:[eE][-+]?(\\d+|i))?(?:[kKMGTP]?i?|[mMGTPE])?|[kKMGTP]i|[mMGTPE])$)',$)"`
 
+	RunAsUser           bool      `yaml:"runAsUser" json:"runAsUser"`
+	RunAsInternal       bool      `yaml:"runAsInternal" json:"runAsInternal"`
+	PodGPUConsumePolicy string    `yaml:"podGpuConsumePolicy" json:"podGpuConsumePolicy"`
+	SubCharts           []ChartV2 `yaml:"subCharts" json:"subCharts"`
+
 	Language     []string     `yaml:"language,omitempty" json:"language,omitempty"`
 	Submitter    string       `yaml:"submitter,omitempty" json:"submitter,omitempty"`
 	Doc          string       `yaml:"doc,omitempty" json:"doc,omitempty"`
@@ -127,10 +233,17 @@ type SupportClient struct {
 }
 
 type Permission struct {
-	AppData  bool         `yaml:"appData,omitempty" json:"appData,omitempty"  description:"app data permission for writing"`
-	AppCache bool         `yaml:"appCache" json:"appCache"`
-	UserData []string     `yaml:"userData" json:"userData"`
-	SysData  []SysDataCfg `yaml:"sysData,omitempty" json:"sysData,omitempty"  description:"system shared data permission for accessing"`
+	AppData        bool                 `yaml:"appData,omitempty" json:"appData,omitempty"  description:"app data permission for writing"`
+	AppCache       bool                 `yaml:"appCache" json:"appCache"`
+	UserData       []string             `yaml:"userData" json:"userData"`
+	Provider       []ProviderPermission `yaml:"provider" json:"provider"  description:"system shared data permission for accessing"`
+	ServiceAccount *string              `yaml:"serviceAccount,omitempty" json:"serviceAccount,omitempty" description:"service account for app permission"`
+}
+
+type ProviderPermission struct {
+	AppName      string `yaml:"appName" json:"appName"`
+	Namespace    string `yaml:"namespace,omitempty" json:"namespace,omitempty"`
+	ProviderName string `yaml:"providerName" json:"providerName"`
 }
 
 type SysDataCfg struct {
@@ -149,13 +262,25 @@ type Policy struct {
 }
 
 type Options struct {
-	Policies     *[]Policy     `yaml:"policies" json:"policies" vd:"?"`
-	Analytics    *Analytics    `yaml:"analytics" json:"analytics" vd:"?"`
-	ResetCookie  *ResetCookie  `yaml:"resetCookie" json:"resetCookie" vd:"?"`
-	Dependencies *[]Dependency `yaml:"dependencies" json:"dependencies" vd:"?"`
-	AppScope     *AppScope     `yaml:"appScope" json:"appScope" vd:"?"`
-	WsConfig     *WsConfig     `yaml:"wsConfig" json:"wsConfig" vd:"?"`
-	Upload       *Upload       `yaml:"upload" json:"upload"`
+	MobileSupported      bool                     `yaml:"mobileSupported" json:"mobileSupported"`
+	Policies             *[]Policy                `yaml:"policies" json:"policies" vd:"?"`
+	Analytics            *Analytics               `yaml:"analytics" json:"analytics" vd:"?"`
+	ResetCookie          *ResetCookie             `yaml:"resetCookie" json:"resetCookie" vd:"?"`
+	Dependencies         *[]Dependency            `yaml:"dependencies" json:"dependencies" vd:"?"`
+	AppScope             *AppScope                `yaml:"appScope" json:"appScope" vd:"?"`
+	WsConfig             *WsConfig                `yaml:"wsConfig" json:"wsConfig" vd:"?"`
+	Upload               *Upload                  `yaml:"upload" json:"upload"`
+	SyncProvider         []map[string]interface{} `yaml:"syncProvider" json:"syncProvider"`
+	OIDC                 OIDC                     `yaml:"oidc" json:"oidc"`
+	ApiTimeout           *int64                   `yaml:"apiTimeout" json:"apiTimeout"`
+	AllowedOutboundPorts []int                    `yaml:"allowedOutboundPorts" json:"AllowedOutboundPorts"`
+	Images               []string                 `yaml:"images" json:"images"`
+}
+
+type OIDC struct {
+	Enabled      bool   `yaml:"enabled" json:"enabled"`
+	RedirectUri  string `yaml:"redirectUri" json:"redirectUri"`
+	EntranceName string `yaml:"entranceName" json:"entranceName"`
 }
 
 type WsConfig struct {
@@ -233,4 +358,21 @@ type ServicePort struct {
 	// +optional
 	Protocol          string `yaml:"protocol" json:"protocol,omitempty"`
 	AddToTailscaleAcl bool   `yaml:"addToTailscaleAcl" json:"addToTailscaleAcl"`
+}
+
+type ACL struct {
+	Action string   `json:"action,omitempty"`
+	Src    []string `json:"src,omitempty"`
+	Proto  string   `json:"proto"`
+	Dst    []string `json:"dst"`
+}
+
+type TailScale struct {
+	ACLs      []ACL    `json:"acls,omitempty"`
+	SubRoutes []string `json:"subRoutes,omitempty"`
+}
+
+type ChartV2 struct {
+	Name   string `yaml:"name" json:"name"`
+	Shared bool   `yaml:"shared" json:"shared"`
 }
