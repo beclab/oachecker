@@ -184,6 +184,7 @@ type Entrance struct {
 	Invisible       bool   `yaml:"invisible,omitempty" json:"invisible,omitempty"`
 	OpenMethod      string `yaml:"openMethod" json:"openMethod"`
 	WindowPushState bool   `yaml:"windowPushState,omitempty" json:"windowPushState,omitempty"`
+	Skip            bool   `yaml:"skip" json:"skip"`
 }
 
 type AppSpec struct {
